@@ -1,6 +1,9 @@
 package com.drone.volocopter.service
 
+import com.drone.volocopter.model.data.Command
 import com.drone.volocopter.model.data.CurrentPosition
+import com.drone.volocopter.model.data.Drone
+import com.drone.volocopter.model.data.World
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -13,26 +16,30 @@ import java.io.PrintStream
 class DroneMovementCalculatorServiceTests {
 
     private lateinit var droneMovementInputService: DroneMovementInputService
-    private lateinit var droneMovementCalculatorService: DroneMovementCalculatorService
+    private lateinit var droneMovementProcessor: DroneMovementProcessor
     private val outputStreamCaptor = ByteArrayOutputStream()
 
     @BeforeEach
     fun setUp() {
-        droneMovementCalculatorService = DroneMovementCalculatorService()
-        droneMovementInputService = DroneMovementInputService(droneMovementCalculatorService)
+        droneMovementProcessor = DroneMovementProcessor()
+        droneMovementInputService = DroneMovementInputService(droneMovementProcessor)
         System.setOut(PrintStream(outputStreamCaptor))
     }
 
     @Test
     fun testMoveLeft_WithinBoundary_ShouldPass() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
+
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveLeft(2)
+        val command = Command(1, "LEFT", 2);
+        droneMovementProcessor.executeCommand(currentPosition, command)
 
         assertEquals(3, droneMovementInputService.drone.x)
         assertEquals(5, droneMovementInputService.drone.y)
@@ -41,14 +48,17 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveDown_WithinBoundary_ShouldPass() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveDown(2)
+        val command = Command(1, "DOWN", 2);
+        droneMovementProcessor.executeCommand(currentPosition, command)
 
         assertEquals(5, droneMovementInputService.drone.x)
         assertEquals(3, droneMovementInputService.drone.y)
@@ -57,14 +67,18 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveUp_Collision() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveUp(15)
+        val command = Command(1, "UP", 15);
+        droneMovementProcessor.executeCommand(currentPosition, command)
+
         val consoleOutput = outputStreamCaptor.toString().trim()
         assertTrue(consoleOutput.contains("CRASH"))
         assertTrue(consoleOutput.contains("(0, 5, 0) -> (5, 10, 5)"))
@@ -73,14 +87,17 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveDown_Collision() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveDown(15)
+        val command = Command(1, "DOWN", 15)
+        droneMovementProcessor.executeCommand(currentPosition, command)
         val consoleOutput = outputStreamCaptor.toString().trim()
         assertTrue(consoleOutput.contains("CRASH"))
         assertTrue(consoleOutput.contains("(0, -5, 0) -> (5, 0, 5)"))
@@ -89,14 +106,17 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveUp_WithinBoundary_ShouldPass() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveUp(2)
+        val command = Command(1, "UP", 2)
+        droneMovementProcessor.executeCommand(currentPosition, command)
 
         assertEquals(5, droneMovementInputService.drone.x)
         assertEquals(7, droneMovementInputService.drone.y)
@@ -105,14 +125,17 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveRight_WithinBoundary_ShouldPass() {
-        droneMovementInputService.initializeWorldAndDrone()
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
+
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveRight(2)
+        val command = Command(1, "RIGHT", 2)
+        droneMovementProcessor.executeCommand(currentPosition, command)
 
         assertEquals(7, droneMovementInputService.drone.x)
         assertEquals(5, droneMovementInputService.drone.y)
@@ -121,14 +144,18 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveRight_Collision() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveRight(15)
+        val command = Command(1, "RIGHT", 15)
+        droneMovementProcessor.executeCommand(currentPosition, command)
+
         val consoleOutput = outputStreamCaptor.toString().trim()
         assertTrue(consoleOutput.contains("CRASH"))
         assertTrue(consoleOutput.contains("(5, 0, 0) -> (10, 5, 5)"))
@@ -137,14 +164,18 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveLeft_Collision() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveLeft(15)
+        val command = Command(1, "LEFT", 15)
+        droneMovementProcessor.executeCommand(currentPosition, command)
+
         val consoleOutput = outputStreamCaptor.toString().trim()
         assertTrue(consoleOutput.contains("CRASH"))
         assertTrue(consoleOutput.contains("(-5, 0, 0) -> (0, 5, 5)"))
@@ -152,15 +183,17 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveForward_WithinBoundary_ShouldPass() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveForward(2)
-
+        val command = Command(1, "FORWARD", 2)
+        droneMovementProcessor.executeCommand(currentPosition, command)
         assertEquals(5, droneMovementInputService.drone.x)
         assertEquals(5, droneMovementInputService.drone.y)
         assertEquals(7, droneMovementInputService.drone.z)
@@ -168,15 +201,17 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveBackward_WithinBoundary_ShouldPass() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveBackward(2)
-
+        val command = Command(1, "BACKWARD", 2)
+        droneMovementProcessor.executeCommand(currentPosition, command)
         assertEquals(5, droneMovementInputService.drone.x)
         assertEquals(5, droneMovementInputService.drone.y)
         assertEquals(3, droneMovementInputService.drone.z)
@@ -184,14 +219,18 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveForward_Collision() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveForward(15)
+        val command = Command(1, "FORWARD", 15)
+        droneMovementProcessor.executeCommand(currentPosition, command)
+
         val consoleOutput = outputStreamCaptor.toString().trim()
         assertTrue(consoleOutput.contains("CRASH"))
         assertTrue(consoleOutput.contains("(0, 0, 5) -> (5, 5, 10)"))
@@ -200,14 +239,18 @@ class DroneMovementCalculatorServiceTests {
 
     @Test
     fun testMoveBackward_Collision() {
-        droneMovementInputService.initializeWorldAndDrone()
+
+        droneMovementInputService.drone = Drone(5, 5, 5)
+        droneMovementInputService.world = World(10, 10, 10)
         val currentPosition = CurrentPosition(
             droneMovementInputService.world,
             droneMovementInputService.drone
         )
-        droneMovementCalculatorService.currentPosition = currentPosition
+        droneMovementProcessor.currentPosition = currentPosition
 
-        droneMovementCalculatorService.moveBackward(15)
+        val command = Command(1, "BACKWARD", 15)
+        droneMovementProcessor.executeCommand(currentPosition, command)
+
         val consoleOutput = outputStreamCaptor.toString().trim()
         assertTrue(consoleOutput.contains("CRASH"))
         assertTrue(consoleOutput.contains("(0, 0, -5) -> (5, 5, 0)"))
