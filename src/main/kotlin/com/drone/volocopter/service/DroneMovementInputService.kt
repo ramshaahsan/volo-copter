@@ -13,7 +13,7 @@ class DroneMovementInputService(
 ) {
     lateinit var world: World
     lateinit var drone: Drone
-    private var commands = mutableListOf<Command>()
+    var commands = mutableListOf<Command>()
 
     fun initiateDrone() {
         initializeWorldAndDrone()

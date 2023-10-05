@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
 @SpringBootTest
-class DroneMovementCalculatorServiceTests {
+class DroneMovementProcessorTests {
 
     private lateinit var droneMovementInputService: DroneMovementInputService
     private lateinit var droneMovementProcessor: DroneMovementProcessor
